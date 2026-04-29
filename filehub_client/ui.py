@@ -44,7 +44,7 @@ class UserInterface:
         console.clear_screen()
         self._print_banner()
         
-        # Ввод учетных данных
+        # Проверяем сохранённые учетные данные
         username, password = self._get_credentials()
         if not username:
             return
@@ -54,13 +54,17 @@ class UserInterface:
         
         if not self.client.connect(username, password):
             console.print_system_message('Не удалось подключиться', 'error')
+            # Если пароль был сохранён и не подошёл - удаляем его
+            if self.client.auth.has_saved_password(username):
+                self.client.auth.delete_saved_password(username)
+                console.print_system_message('Сохранённый пароль удалён (неверный)', 'warning')
             return
         
         console.print_system_message(f'Подключено как {username}', 'success')
         
-        # Сохранение пароля
+        # Сохранение пароля если нужно
         if self.client.auth.remember_password and password:
-            self.client.auth.save_password_hash(username, password)
+            self.client.auth.save_password(username, password)
             console.print_system_message('Пароль сохранен', 'info')
         
         # Запуск обработчика уведомлений
@@ -91,19 +95,45 @@ class UserInterface:
         Возвращает:
             (имя пользователя, пароль)
         """
+        # Сначала пробуем загрузить сохранённые данные из файла
+        auto_username = None
+        auto_password = None
+        
+        if self.client.auth.remember_password:
+            # Ищем сохранённые пароли
+            try:
+                import json
+                import os
+                if os.path.exists(self.client.auth.password_hash_file):
+                    with open(self.client.auth.password_hash_file, 'r') as f:
+                        data = json.load(f)
+                        if data:
+                            # Берём первого сохранённого пользователя
+                            auto_username = list(data.keys())[0]
+                            auto_password = self.client.auth.get_saved_password(auto_username)
+            except Exception:
+                pass
+        
+        # Если нашли сохранённые данные - используем их автоматически
+        if auto_username and auto_password:
+            console.print_system_message(f'Автоматический вход: {auto_username}', 'info')
+            return auto_username, auto_password
+        
+        # Иначе запрашиваем вручную
         console.print_separator('-')
         username = input('Имя пользователя: ').strip()
         if not username:
             console.print_system_message('Имя пользователя не может быть пустым', 'error')
             return None, None
         
-        # Проверка сохраненного пароля
-        saved = self.client.auth.check_saved_password(username)
+        # Проверка сохраненного пароля для этого пользователя
+        saved_password = self.client.auth.get_saved_password(username)
         
-        if saved:
-            console.print_system_message('Найден сохранённый пароль', 'info')
-            password = getpass.getpass('Пароль (Enter для сохранённого): ')
+        if saved_password:
+            console.print_system_message(f'Используется сохранённый пароль для {username}', 'info')
+            password = saved_password
         else:
+            # Запрашиваем пароль
             password = getpass.getpass('Пароль (Enter если не требуется): ')
         
         return username, password
@@ -224,10 +254,8 @@ class UserInterface:
         
         try:
             user_input = input('> ').strip().lower()
-            # Если пользователь ввел q или 0, просто возвращаемся (ничего не делаем)
             if user_input in ('q', '0'):
-                pass  # Просто возвращаемся в главное меню
-            # Enter или любой другой символ - тоже возвращаемся
+                pass
         except (KeyboardInterrupt, EOFError):
             pass
     
@@ -245,7 +273,6 @@ class UserInterface:
                 'level': level,
                 'time': time.time()
             })
-            # Ограничиваем очередь
             if len(self._notification_queue) > 10:
                 self._notification_queue.pop(0)
     
@@ -254,7 +281,7 @@ class UserInterface:
         with self._notification_lock:
             if self._notification_queue:
                 print('Последние события:')
-                for notif in self._notification_queue[-3:]:  # Последние 3
+                for notif in self._notification_queue[-3:]:
                     icon = {
                         'info': '(*)',
                         'success': '(+)',
@@ -268,12 +295,11 @@ class UserInterface:
         """Фоновый обработчик уведомлений"""
         while self._running:
             time.sleep(0.5)
-            # Автоматическая очистка старых уведомлений
             with self._notification_lock:
                 current_time = time.time()
                 self._notification_queue = [
                     n for n in self._notification_queue 
-                    if current_time - n['time'] < 30  # Удаляем старше 30 секунд
+                    if current_time - n['time'] < 30
                 ]
     
     def _show_active_transfers(self):

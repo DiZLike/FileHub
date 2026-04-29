@@ -1,0 +1,9 @@
+## Игнорировать
+**/__pycache__
+**/downloads
+**/my_shares
+**/dist
+**/client_pass.hash
+
+## Игнорировать папку .vs (настройки Visual Studio)
+.vs/

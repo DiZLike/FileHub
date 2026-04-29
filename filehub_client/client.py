@@ -39,7 +39,6 @@ class FileHubClient:
         self.uploads.set_encryption(self.encryption)
         
         # Настройка колбэков
-        # ВАЖНО: Оборачиваем обработчик upload request в отдельный поток
         def async_upload_handler(request):
             """Асинхронная обработка запроса на отправку файла"""
             transfer_id = request.get('transfer_id', 'unknown')
@@ -77,8 +76,7 @@ class FileHubClient:
                     self.encryption.enable(encryption_params)
                     print(f'[INFO] Шифрование включено: {encryption_params["algorithm"]}')
             
-            # username уже установлен в connection
-            # Перезагружаем раздачи для этого пользователя (ВАЖНО!)
+            # Перезагружаем раздачи для этого пользователя
             self.shares.reload_shares_for_user()
             
             # Валидация локальных раздач при подключении
@@ -97,17 +95,11 @@ class FileHubClient:
     
     def disconnect(self):
         """Отключение от сервера"""
-        # Дожидаемся завершения активных передач
         self.uploads.wait_for_all_transfers(timeout=5)
         self.connection.disconnect()
     
     def share(self, path):
-        """
-        Расшаривание файла или папки
-        
-        Аргументы:
-            path: путь к файлу или папке
-        """
+        """Расшаривание файла или папки"""
         self.shares.share(path)
     
     def list_shares(self):
@@ -119,21 +111,11 @@ class FileHubClient:
         self.shares.list_my_shares()
     
     def download(self, share_id):
-        """
-        Скачивание раздачи
-        
-        Аргументы:
-            share_id: ID раздачи
-        """
+        """Скачивание раздачи"""
         self.downloads.download(share_id)
     
     def remove_share(self, share_id):
-        """
-        Удаление раздачи
-        
-        Аргументы:
-            share_id: ID раздачи
-        """
+        """Удаление раздачи"""
         self.shares.remove_share(share_id)
     
     def show_stats(self):
@@ -152,7 +134,6 @@ class FileHubClient:
             print(f'Передано данных: {response["total_bytes_transferred"]}')
             print(f'Требуется пароль: {"да" if response.get("require_password", False) else "нет"}')
             
-            # Информация о шифровании
             encryption_stats = response.get('encryption', {})
             if encryption_stats.get('enabled'):
                 print(f'Шифрование: включено ({encryption_stats.get("active_session_keys", 0)} активных ключей)')
@@ -171,7 +152,6 @@ class FileHubClient:
     
     def _on_disconnect(self):
         """Обработчик отключения"""
-        # Ожидаем завершения активных передач при отключении
         self.uploads.wait_for_all_transfers(timeout=3)
 
 
