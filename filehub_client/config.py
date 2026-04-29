@@ -45,6 +45,14 @@ auto_reconnect = false
 remember_password = false
 # Файл хешей паролей
 password_hash_file = client_pass.hash
+
+[service]
+# Режим сервиса (только раздача)
+# Включается флагом --service при запуске
+# Автоматическое переподключение при обрыве связи
+auto_reconnect = true
+# Интервал переподключения в секундах
+reconnect_interval = 30
 """
 
 class ClientConfig:
@@ -171,4 +179,12 @@ class ClientConfig:
         return {
             'remember_password': self.get_config('security', 'remember_password', 'false').lower() == 'true',
             'password_hash_file': self.get_config('security', 'password_hash_file', 'client_pass.hash')
+        }
+    
+    @property
+    def service_config(self):
+        """Конфигурация сервисного режима"""
+        return {
+            'auto_reconnect': self.get_config('service', 'auto_reconnect', 'true').lower() == 'true',
+            'reconnect_interval': int(self.get_config('service', 'reconnect_interval', '30'))
         }

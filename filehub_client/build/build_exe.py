@@ -107,6 +107,9 @@ class BuildManager:
             dir_path.mkdir(exist_ok=True)
             print(f"  Created {dir_name}/")
         
+        # Create service scripts
+        self._create_service_scripts(output_dir)
+        
         print("  Done")
         
         # Show result
@@ -119,6 +122,116 @@ class BuildManager:
             print(f"   Output dir: {output_dir}")
         else:
             print(f"\n❌ FAILED: {exe_path} not found")
+    
+    def _create_service_scripts(self, output_dir):
+        """Создание скриптов для запуска в режиме сервиса"""
+        
+        # Windows batch file для сервиса
+        service_bat = output_dir / "run_service.bat"
+        with open(service_bat, 'w', encoding='utf-8') as f:
+            f.write(f"""@echo off
+chcp 65001 >nul
+title FileHub Service
+
+echo ========================================
+echo    FileHub Client - Service Mode
+echo ========================================
+echo.
+
+REM Замените USERNAME и PASSWORD на свои данные
+REM Или удалите --password если пароль сохранен
+
+set USERNAME=your_username
+set PASSWORD=your_password
+
+echo Starting FileHub in service mode...
+echo.
+
+"{PROJECT_NAME}.exe" --service --username %USERNAME% --password %PASSWORD%
+
+pause
+""")
+        print(f"  Created run_service.bat")
+        
+        # Пример конфигурации для systemd (Linux)
+        service_config = output_dir / "filehub-service.conf"
+        with open(service_config, 'w', encoding='utf-8') as f:
+            f.write(f"""# FileHub Service Configuration
+# 
+# Для использования с systemd (Linux):
+# 1. Скопируйте этот файл в /etc/filehub/
+# 2. Создайте systemd сервис
+
+[service]
+# Имя пользователя
+username = your_username
+# Пароль (оставьте пустым если используется сохраненный пароль)
+password = your_password
+# Автоматическое переподключение
+auto_reconnect = true
+# Интервал переподключения в секундах
+reconnect_interval = 30
+# Пути для автоматической раздачи (через запятую)
+auto_share_paths = 
+""")
+        print(f"  Created filehub-service.conf")
+        
+        # README с инструкциями
+        readme = output_dir / "SERVICE_README.txt"
+        with open(readme, 'w', encoding='utf-8') as f:
+            f.write(f"""FileHub Client - Service Mode
+==============================
+
+Запуск в режиме сервиса (только раздача файлов):
+
+1. Через командную строку:
+   {PROJECT_NAME}.exe --service --username USER --password PASS
+
+2. С сохраненным паролем:
+   {PROJECT_NAME}.exe --service --username USER
+
+3. С авто-раздачей путей:
+   {PROJECT_NAME}.exe --service --username USER --share "C:\\path\\to\\folder" "D:\\file.txt"
+
+4. Отключить авто-переподключение:
+   {PROJECT_NAME}.exe --service --username USER --no-reconnect
+
+Для остановки сервиса нажмите Ctrl+C
+
+Windows Service:
+Можно использовать NSSM (Non-Sucking Service Manager) для установки как службу Windows:
+   nssm install FileHubService
+   nssm set FileHubService AppDirectory "C:\\path\\to\\{PROJECT_NAME}"
+   nssm set FileHubService Application "{PROJECT_NAME}.exe"
+   nssm set FileHubService AppParameters "--service --username YOUR_USER"
+   nssm start FileHubService
+
+Linux systemd:
+Создайте файл /etc/systemd/system/filehub.service:
+   [Unit]
+   Description=FileHub Client Service
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=your_user
+   WorkingDirectory=/path/to/app
+   ExecStart=/path/to/app/{PROJECT_NAME} --service --username YOUR_USER
+   Restart=always
+   RestartSec=30
+
+   [Install]
+   WantedBy=multi-user.target
+
+Затем:
+   sudo systemctl daemon-reload
+   sudo systemctl enable filehub.service
+   sudo systemctl start filehub.service
+
+Для просмотра логов:
+   sudo journalctl -u filehub.service -f
+""")
+        print(f"  Created SERVICE_README.txt")
 
 def main():
     manager = BuildManager()
