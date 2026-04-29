@@ -1,6 +1,7 @@
 ## Игнорировать
 **/__pycache__
 **/downloads
+**/temp
 **/my_shares
 **/dist
 **/client_pass.hash
