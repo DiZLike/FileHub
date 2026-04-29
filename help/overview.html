@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>FileHub — Обобщенная документация и руководство по расширению</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f4f7fb;
+      color: #1e293b;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      box-shadow: 0 0 30px rgba(0,0,0,0.03);
+    }
+    /* боковая навигация */
+    nav.sidebar {
+      width: 300px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      padding: 2rem 1.2rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    nav.sidebar h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-section {
+      margin-bottom: 1.5rem;
+    }
+    .nav-section-title {
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+    .nav-item {
+      display: block;
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      color: #334155;
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+      transition: all 0.2s;
+    }
+    .nav-item:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    /* основной контент */
+    main {
+      flex: 1;
+      background: #ffffff;
+      padding: 2.5rem 3rem;
+      overflow-y: auto;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.8rem;
+      margin: 2.5rem 0 1.2rem;
+      color: #1e293b;
+      font-weight: 600;
+      border-left: 4px solid #2563eb;
+      padding-left: 1rem;
+    }
+    h3 {
+      font-size: 1.3rem;
+      margin: 2rem 0 0.8rem;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    p {
+      margin-bottom: 1.2rem;
+    }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.6rem;
+      margin: 1.8rem 0;
+    }
+    .card.warning {
+      background: #fffbeb;
+      border-color: #fcd34d;
+    }
+    .card.success {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: #b91c1c;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1.4rem;
+      border-radius: 14px;
+      overflow-x: auto;
+      margin: 1.2rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .step-number {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-weight: 700;
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+      padding: 0.7rem;
+      text-align: left;
+    }
+    td, th {
+      border: 1px solid #e2e8f0;
+      padding: 0.6rem 0.9rem;
+    }
+    .file-badge {
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+      padding: 0.15rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    @media (max-width: 800px) {
+      .container {
+        flex-direction: column;
+      }
+      nav.sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      main {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <nav class="sidebar">
+    <h2>📁 FileHub</h2>
+    <div class="nav-section">
+      <div class="nav-section-title">Обзор проекта</div>
+      <a href="#project-overview" class="nav-item">О проекте</a>
+      <a href="#common-architecture" class="nav-item">Общая архитектура</a>
+      <a href="#protocol" class="nav-item">Протокол обмена</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Руководство по расширению</div>
+      <a href="#extending-server" class="nav-item">Сервер: пошаговое руководство</a>
+      <a href="#example-server-module" class="nav-item">Пример: модуль сервера</a>
+      <a href="#extending-client" class="nav-item">Клиент: пошаговое руководство</a>
+      <a href="#example-client-module" class="nav-item">Пример: модуль клиента</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Справочная информация</div>
+      <a href="#best-practices" class="nav-item">Лучшие практики</a>
+      <a href="#module-checklist" class="nav-item">Чек-лист разработчика</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>FileHub — Обобщенная документация и руководство по расширению</h1>
+
+    <!-- О ПРОЕКТЕ -->
+    <section id="project-overview">
+      <h2>📌 О проекте FileHub</h2>
+      <p>
+        <strong>FileHub</strong> — это клиент-серверная система для обмена файлами в реальном времени.
+        Сервер координирует подключения пользователей, хранит метаданные раздач и проксирует передачу данных
+        между отправителем и получателем. Клиент предоставляет консольный интерфейс для взаимодействия с сервером.
+      </p>
+      <div class="card">
+        <p><strong>Ключевые особенности архитектуры:</strong></p>
+        <ul>
+          <li>🔹 Модульная структура с внедрением зависимостей</li>
+          <li>🔹 Единый протокол обмена на основе JSON</li>
+          <li>🔹 Разделение управляющего канала и канала передачи данных</li>
+          <li>🔹 Конфигурация через .conf файлы</li>
+          <li>🔹 Расширяемость через добавление новых модулей</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ОБЩАЯ АРХИТЕКТУРА -->
+    <section id="common-architecture">
+      <h2>🏗️ Общая архитектура системы</h2>
+      <p>Система состоит из двух независимых компонентов, взаимодействующих по сети:</p>
+      
+      <h3>Серверная часть</h3>
+      <table>
+        <tr><th>Модуль</th><th>Назначение</th></tr>
+        <tr><td><span class="file-badge">server.py</span></td><td>Главный цикл, диспетчер команд, управление потоками</td></tr>
+        <tr><td><span class="file-badge">auth.py</span></td><td>Аутентификация пользователей, управление сессиями</td></tr>
+        <tr><td><span class="file-badge">shares.py</span></td><td>Управление раздачами, очистка неактивных</td></tr>
+        <tr><td><span class="file-badge">networking.py</span></td><td>JSON-протокол, проксирование данных</td></tr>
+        <tr><td><span class="file-badge">storage.py</span></td><td>Сохранение/загрузка данных в JSON</td></tr>
+        <tr><td><span class="file-badge">security.py</span></td><td>IP-фильтры, хеширование паролей</td></tr>
+        <tr><td><span class="file-badge">config.py</span></td><td>Парсинг конфигурации</td></tr>
+        <tr><td><span class="file-badge">logger.py</span></td><td>Логирование и статистика</td></tr>
+      </table>
+
+      <h3>Клиентская часть</h3>
+      <table>
+        <tr><th>Модуль</th><th>Назначение</th></tr>
+        <tr><td><span class="file-badge">client.py</span></td><td>Главный класс, инициализация компонентов</td></tr>
+        <tr><td><span class="file-badge">connection.py</span></td><td>Сетевое взаимодействие с сервером</td></tr>
+        <tr><td><span class="file-badge">shares.py</span></td><td>Управление раздачами, синхронизация</td></tr>
+        <tr><td><span class="file-badge">downloads.py</span></td><td>Скачивание файлов</td></tr>
+        <tr><td><span class="file-badge">uploads.py</span></td><td>Отправка файлов по запросу</td></tr>
+        <tr><td><span class="file-badge">ui.py</span></td><td>Пользовательский интерфейс</td></tr>
+      </table>
+    </section>
+
+    <!-- ПРОТОКОЛ -->
+    <section id="protocol">
+      <h2>📡 Протокол обмена</h2>
+      <p>Клиент и сервер обмениваются сообщениями в формате JSON. Каждое сообщение предваряется 4-байтовым заголовком с длиной данных.</p>
+      
+      <h3>Основные действия (MessageActions)</h3>
+      <table>
+        <tr><th>Действие</th><th>Направление</th><th>Описание</th></tr>
+        <tr><td><code>login</code></td><td>Клиент → Сервер</td><td>Аутентификация пользователя</td></tr>
+        <tr><td><code>share_file</code></td><td>Клиент → Сервер</td><td>Создание раздачи файла</td></tr>
+        <tr><td><code>share_folder</code></td><td>Клиент → Сервер</td><td>Создание раздачи папки</td></tr>
+        <tr><td><code>list</code></td><td>Клиент → Сервер</td><td>Запрос списка всех раздач</td></tr>
+        <tr><td><code>my_shares</code></td><td>Клиент → Сервер</td><td>Запрос своих раздач</td></tr>
+        <tr><td><code>download</code></td><td>Клиент → Сервер</td><td>Запрос на скачивание</td></tr>
+        <tr><td><code>upload_request</code></td><td>Сервер → Клиент</td><td>Запрос на отправку файла</td></tr>
+        <tr><td><code>ping</code></td><td>Клиент → Сервер</td><td>Поддержание активности раздач</td></tr>
+        <tr><td><code>stats</code></td><td>Клиент → Сервер</td><td>Запрос статистики сервера</td></tr>
+      </table>
+
+      <div class="card">
+        <p><strong>Формат ответа:</strong></p>
+        <pre>{
+  "status": "ok" | "error",
+  "message": "описание",
+  // дополнительные поля в зависимости от действия
+}</pre>
+      </div>
+    </section>
+
+    <!-- РАСШИРЕНИЕ СЕРВЕРА -->
+    <hr>
+    <h2 id="extending-server">🔧 Расширение сервера: пошаговое руководство</h2>
+    
+    <p>Процесс добавления нового модуля на сервер состоит из следующих шагов:</p>
+
+    <h3><span class="step-number">1</span> Определите функциональность модуля</h3>
+    <p>Решите, какую задачу будет решать новый модуль. Например: система комментариев к раздачам, рейтинг файлов, очередь загрузок.</p>
+
+    <h3><span class="step-number">2</span> Создайте файл модуля</h3>
+    <p>Создайте новый <code>.py</code> файл в корне проекта сервера. Класс модуля должен принимать необходимые зависимости через конструктор.</p>
+
+    <div class="card">
+      <p><strong>Шаблон класса модуля сервера:</strong></p>
+      <pre># my_module.py
+"""
+Описание модуля
+"""
+
+class MyModuleManager:
+    """Менеджер для вашей функциональности"""
+    
+    def __init__(self, storage, logger, config=None):
+        """
+        Инициализация модуля
+        
+        Аргументы:
+            storage: хранилище данных (DataStorage)
+            logger: система логирования (Logger)
+            config: конфигурация сервера (Config) - опционально
+        """
+        self.storage = storage
+        self.logger = logger
+        self.config = config
+        
+        # Инициализация данных модуля
+        self.data = {}
+        
+        self.logger.log('INFO', 'MyModule инициализирован')
+    
+    def do_something(self, param):
+        """Пример метода модуля"""
+        self.logger.log('DEBUG', f'MyModule.do_something вызван с {param}')
+        # Ваша логика здесь
+        return True, 'Операция выполнена'</pre>
+    </div>
+
+    <h3><span class="step-number">3</span> Добавьте действия в протокол</h3>
+    <p>Добавьте новые константы в класс <code>MessageActions</code> в файле <code>protocols.py</code>:</p>
+
+    <pre>class MessageActions:
+    # существующие действия...
+    MY_ACTION = 'my_action'           # ваше действие
+    MY_OTHER_ACTION = 'my_other'      # другое действие</pre>
+
+    <h3><span class="step-number">4</span> Интегрируйте модуль в FileHubServer</h3>
+    <p>В файле <code>server.py</code> импортируйте модуль и добавьте его в <code>__init__</code>:</p>
+
+    <pre>from my_module import MyModuleManager
+
+class FileHubServer:
+    def __init__(self, config_path='filehub.conf'):
+        # существующие инициализации...
+        self.my_module = MyModuleManager(self.storage, self.logger, self.config)
+        self.logger.log('INFO', 'MyModule интегрирован')</pre>
+
+    <h3><span class="step-number">5</span> Добавьте обработчики в _handle_client</h3>
+    <p>В методе <code>_handle_client</code> добавьте обработку новых действий:</p>
+
+    <pre>def _handle_client(self, client_socket, address):
+    # ... существующий код ...
+    
+    while self.running:
+        request = self.network.receive_json(client_socket)
+        action = request.get('action')
+        
+        # существующие обработчики...
+        elif action == MessageActions.MY_ACTION:
+            self._handle_my_action(client_socket, request, username)
+        elif action == MessageActions.MY_OTHER_ACTION:
+            self._handle_my_other_action(client_socket, request, username)</pre>
+
+    <h3><span class="step-number">6</span> Реализуйте методы-обработчики</h3>
+    <p>Добавьте методы в класс <code>FileHubServer</code>:</p>
+
+    <pre>def _handle_my_action(self, client_socket, request, username):
+    """Обработка вашего действия"""
+    param = request.get('param', '')
+    
+    success, message = self.my_module.do_something(param)
+    
+    self.network.send_json(client_socket, {
+        'status': 'ok' if success else 'error',
+        'message': message
+    })</pre>
+
+    <!-- ПРИМЕР МОДУЛЯ СЕРВЕРА -->
+    <section id="example-server-module">
+      <h3>📋 Полный пример: модуль комментариев к раздачам</h3>
+      
+      <div class="card success">
+        <p><strong>Файл: <code>comments.py</code></strong></p>
+        <pre>"""
+Модуль комментариев к раздачам
+"""
+
+import time
+from datetime import datetime
+
+class CommentManager:
+    """Менеджер комментариев к раздачам"""
+    
+    def __init__(self, storage, logger):
+        self.storage = storage
+        self.logger = logger
+        
+        # Структура: {share_id: [{username, text, timestamp}]}
+        self.comments = {}
+        
+        self.logger.log('INFO', 'CommentManager инициализирован')
+    
+    def add_comment(self, share_id, username, text):
+        """
+        Добавление комментария к раздаче
+        
+        Аргументы:
+            share_id: ID раздачи
+            username: имя пользователя
+            text: текст комментария
+        """
+        if share_id not in self.storage.shares:
+            return False, 'Раздача не найдена'
+        
+        if not text or len(text) > 500:
+            return False, 'Комментарий должен быть от 1 до 500 символов'
+        
+        if share_id not in self.comments:
+            self.comments[share_id] = []
+        
+        comment = {
+            'username': username,
+            'text': text,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        self.comments[share_id].append(comment)
+        
+        # Ограничиваем количество комментариев
+        if len(self.comments[share_id]) > 100:
+            self.comments[share_id] = self.comments[share_id][-100:]
+        
+        self.logger.log('INFO', f'Комментарий от {username} к раздаче {share_id}')
+        return True, 'Комментарий добавлен'
+    
+    def get_comments(self, share_id):
+        """
+        Получение комментариев к раздаче
+        
+        Аргументы:
+            share_id: ID раздачи
+        """
+        return self.comments.get(share_id, [])</pre>
+      </div>
+
+      <p><strong>Добавление в protocols.py:</strong></p>
+      <pre>class MessageActions:
+    # ... существующие ...
+    ADD_COMMENT = 'add_comment'
+    GET_COMMENTS = 'get_comments'</pre>
+
+      <p><strong>Интеграция в server.py:</strong></p>
+      <pre>from comments import CommentManager
+
+class FileHubServer:
+    def __init__(self, config_path='filehub.conf'):
+        # ... существующий код ...
+        self.comments = CommentManager(self.storage, self.logger)
+    
+    def _handle_client(self, client_socket, address):
+        # в цикле обработки команд:
+        elif action == MessageActions.ADD_COMMENT:
+            share_id = request.get('share_id')
+            text = request.get('text', '')
+            success, msg = self.comments.add_comment(share_id, username, text)
+            self.network.send_json(client_socket, {
+                'status': 'ok' if success else 'error',
+                'message': msg
+            })
+        
+        elif action == MessageActions.GET_COMMENTS:
+            share_id = request.get('share_id')
+            comments = self.comments.get_comments(share_id)
+            self.network.send_json(client_socket, {
+                'status': 'ok',
+                'comments': comments
+            })</pre>
+    </section>
+
+    <!-- РАСШИРЕНИЕ КЛИЕНТА -->
+    <hr>
+    <h2 id="extending-client">🔧 Расширение клиента: пошаговое руководство</h2>
+
+    <h3><span class="step-number">1</span> Создайте файл модуля</h3>
+    <div class="card">
+      <p><strong>Шаблон класса модуля клиента:</strong></p>
+      <pre># my_client_module.py
+"""
+Клиентский модуль для вашей функциональности
+"""
+
+from console_ui import console
+
+class MyClientModule:
+    """Клиентский менеджер для вашей функциональности"""
+    
+    def __init__(self, connection, config):
+        """
+        Инициализация модуля
+        
+        Аргументы:
+            connection: ConnectionManager
+            config: ClientConfig
+        """
+        self.connection = connection
+        self.config = config
+        self.data = []
+    
+    def do_something(self, param):
+        """Пример метода с отправкой команды на сервер"""
+        response = self.connection.send_command({
+            'action': 'my_action',
+            'param': param
+        })
+        
+        if response and response.get('status') == 'ok':
+            console.print_system_message(f'Успешно: {response.get("message")}', 'success')
+            return True
+        else:
+            error = response.get('message', 'Ошибка') if response else 'Нет ответа'
+            console.print_system_message(f'Ошибка: {error}', 'error')
+            return False</pre>
+    </div>
+
+    <h3><span class="step-number">2</span> Интегрируйте в FileHubClient</h3>
+    <pre>from my_client_module import MyClientModule
+
+class FileHubClient:
+    def __init__(self, config_path='client.conf'):
+        # ... существующие инициализации ...
+        self.my_module = MyClientModule(self.connection, self.config)
+    
+    def do_module_action(self, param):
+        """Метод для вызова из UI"""
+        return self.my_module.do_something(param)</pre>
+
+    <h3><span class="step-number">3</span> Добавьте пункты меню в UI</h3>
+    <pre># В методе _process_choice класса UserInterface:
+elif choice == '8':
+    console.clear_screen()
+    console.print_header('Мой модуль')
+    param = input('Введите параметр: ').strip()
+    if param:
+        self.client.do_module_action(param)
+    console.wait_for_key()</pre>
+
+    <!-- ПРИМЕР МОДУЛЯ КЛИЕНТА -->
+    <section id="example-client-module">
+      <h3>📋 Полный пример: модуль поиска по раздачам</h3>
+      
+      <div class="card success">
+        <p><strong>Файл: <code>search.py</code></strong></p>
+        <pre>"""
+Модуль поиска по раздачам
+"""
+
+from protocols import MessageActions
+from console_ui import console
+
+class SearchManager:
+    """Менеджер поиска раздач"""
+    
+    def __init__(self, connection):
+        self.connection = connection
+    
+    def search(self, query):
+        """
+        Поиск раздач по имени или владельцу
+        
+        Аргументы:
+            query: поисковый запрос
+        """
+        if not query:
+            console.print_system_message('Введите поисковый запрос', 'warning')
+            return
+        
+        # Получаем все раздачи
+        response = self.connection.send_command({
+            'action': MessageActions.LIST
+        })
+        
+        if not response or response.get('status') != 'ok':
+            console.print_system_message('Не удалось получить список раздач', 'error')
+            return
+        
+        shares = response.get('shares', [])
+        query_lower = query.lower()
+        
+        # Фильтруем локально
+        results = [
+            s for s in shares
+            if query_lower in s['name'].lower() or 
+               query_lower in s['username'].lower()
+        ]
+        
+        if not results:
+            console.print_system_message(f'По запросу "{query}" ничего не найдено', 'info')
+            return
+        
+        print(f'\nРезультаты поиска "{query}" (найдено: {len(results)}):')
+        print('=' * 70)
+        
+        for share in results:
+            icon = '📁' if share['type'] == 'folder' else '📄'
+            status = '🟢' if share.get('owner_online') else '🔴'
+            print(f'{icon} [{share["share_id"]}] {share["name"]}')
+            print(f'   {status} Владелец: {share["username"]} | Скачиваний: {share.get("downloads", 0)}')
+            print('-' * 70)
+    
+    def search_by_extension(self, extension):
+        """
+        Поиск файлов по расширению
+        
+        Аргументы:
+            extension: расширение файла (например, '.pdf')
+        """
+        if not extension.startswith('.'):
+            extension = '.' + extension
+        
+        response = self.connection.send_command({
+            'action': MessageActions.LIST
+        })
+        
+        if not response or response.get('status') != 'ok':
+            console.print_system_message('Не удалось получить список раздач', 'error')
+            return
+        
+        shares = response.get('shares', [])
+        
+        results = [
+            s for s in shares
+            if s['type'] == 'file' and s['name'].lower().endswith(extension.lower())
+        ]
+        
+        if not results:
+            console.print_system_message(f'Файлы {extension} не найдены', 'info')
+            return
+        
+        print(f'\nФайлы {extension} (найдено: {len(results)}):')
+        print('=' * 70)
+        for share in results:
+            print(f'📄 [{share["share_id"]}] {share["name"]}')
+            print(f'   Владелец: {share["username"]} | Размер: {share.get("size", 0)} байт')
+        print('=' * 70)</pre>
+      </div>
+
+      <p><strong>Интеграция в client.py:</strong></p>
+      <pre>from search import SearchManager
+
+class FileHubClient:
+    def __init__(self, config_path='client.conf'):
+        # ... существующий код ...
+        self.search = SearchManager(self.connection)
+    
+    def search_shares(self, query):
+        self.search.search(query)
+    
+    def search_by_extension(self, ext):
+        self.search.search_by_extension(ext)</pre>
+
+      <p><strong>Добавление в ui.py (метод _process_choice):</strong></p>
+      <pre>elif choice == '8':
+    console.clear_screen()
+    console.print_header('Поиск раздач')
+    query = input('\nПоисковый запрос: ').strip()
+    if query:
+        self.client.search_shares(query)
+    console.wait_for_key()
+
+elif choice == '9':
+    console.clear_screen()
+    console.print_header('Поиск по расширению')
+    ext = input('\nРасширение (например, .pdf): ').strip()
+    if ext:
+        self.client.search_by_extension(ext)
+    console.wait_for_key()</pre>
+
+      <p><strong>Обновление меню в методе _main_loop:</strong></p>
+      <pre>menu_items = [
+    '1. Поделиться файлом/папкой',
+    '2. Список всех раздач',
+    # ... существующие пункты ...
+    '7. Выход',
+    '8. Поиск раздач',
+    '9. Поиск по расширению',
+    # ...
+]</pre>
+    </section>
+
+    <!-- ЛУЧШИЕ ПРАКТИКИ -->
+    <hr>
+    <section id="best-practices">
+      <h2>✅ Лучшие практики при добавлении модулей</h2>
+      
+      <div class="card">
+        <h3>Принципы проектирования</h3>
+        <ul>
+          <li><strong>Единая ответственность</strong> — каждый модуль решает одну задачу</li>
+          <li><strong>Внедрение зависимостей</strong> — зависимости передаются через конструктор</li>
+          <li><strong>Не изменяйте ядро</strong> — добавляйте новые действия в протокол, не модифицируя существующие</li>
+          <li><strong>Логирование</strong> — используйте <code>logger.log()</code> для важных событий</li>
+          <li><strong>Обработка ошибок</strong> — всегда возвращайте понятные сообщения об ошибках</li>
+        </ul>
+      </div>
+
+      <div class="card warning">
+        <h3>Что следует избегать</h3>
+        <ul>
+          <li>❌ Прямого доступа к внутренним данным других модулей</li>
+          <li>❌ Блокирующих операций в основном потоке</li>
+          <li>❌ Жестких зависимостей от конкретных реализаций</li>
+          <li>❌ Изменения формата существующих сообщений протокола</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ЧЕК-ЛИСТ -->
+    <section id="module-checklist">
+      <h2>📋 Чек-лист разработчика нового модуля</h2>
+      
+      <div class="card">
+        <h3>Для серверного модуля:</h3>
+        <ol>
+          <li>✅ Создан новый <code>.py</code> файл с классом модуля</li>
+          <li>✅ Класс принимает <code>storage</code>, <code>logger</code> (и опционально <code>config</code>)</li>
+          <li>✅ В <code>protocols.py</code> добавлены новые действия <code>MessageActions</code></li>
+          <li>✅ Модуль импортирован и инициализирован в <code>server.py</code></li>
+          <li>✅ В <code>_handle_client</code> добавлены обработчики новых действий</li>
+          <li>✅ Реализованы методы-обработчики с отправкой ответа клиенту</li>
+          <li>✅ Добавлено логирование ключевых операций</li>
+          <li>✅ (Опционально) Добавлена секция в <code>filehub.conf</code></li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>Для клиентского модуля:</h3>
+        <ol>
+          <li>✅ Создан новый <code>.py</code> файл с классом модуля</li>
+          <li>✅ Класс принимает <code>connection</code> и опционально <code>config</code></li>
+          <li>✅ Модуль импортирован и инициализирован в <code>client.py</code></li>
+          <li>✅ Добавлены публичные методы в <code>FileHubClient</code></li>
+          <li>✅ В <code>ui.py</code> добавлены пункты меню и обработчики</li>
+          <li>✅ Все сообщения пользователю выводятся через <code>console</code></li>
+          <li>✅ Обрабатываются случаи отсутствия ответа от сервера</li>
+          <li>✅ (Опционально) Добавлены настройки в <code>client.conf</code></li>
+        </ol>
+      </div>
+    </section>
+
+    <div style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; color: #64748b; text-align: center; font-size: 0.9rem;">
+      FileHub Project · Обобщенная документация · Версия 1.0<br>
+      Для предложений и улучшений обращайтесь к команде разработки
+    </div>
+  </main>
+</div>
+</body>
+</html>

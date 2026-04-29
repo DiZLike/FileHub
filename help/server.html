@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Документация FileHub Server</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f4f7fb;
+      color: #1e293b;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      box-shadow: 0 0 30px rgba(0,0,0,0.03);
+    }
+    /* боковая навигация */
+    nav.sidebar {
+      width: 280px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      padding: 2rem 1.2rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    nav.sidebar h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    nav.sidebar h2 span {
+      background: #2563eb;
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.6rem;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+    .nav-section {
+      margin-bottom: 1.5rem;
+    }
+    .nav-section-title {
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+    .nav-item {
+      display: block;
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      color: #334155;
+      text-decoration: none;
+      font-size: 0.95rem;
+      margin-bottom: 0.2rem;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .nav-item:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .nav-item.active {
+      background: #eef2ff;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    /* основной контент */
+    main {
+      flex: 1;
+      background: #ffffff;
+      padding: 2.5rem 3rem;
+      overflow-y: auto;
+      max-width: 100%;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      letter-spacing: -0.5px;
+    }
+    h2 {
+      font-size: 1.8rem;
+      margin: 2.2rem 0 1rem;
+      color: #1e293b;
+      font-weight: 600;
+      border-left: 4px solid #2563eb;
+      padding-left: 1rem;
+    }
+    h3 {
+      font-size: 1.3rem;
+      margin: 1.8rem 0 0.7rem;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    p {
+      margin-bottom: 1.2rem;
+      color: #334155;
+    }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.6rem;
+      margin: 1.8rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      color: #b91c1c;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1.4rem;
+      border-radius: 14px;
+      overflow-x: auto;
+      margin: 1.2rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .file-badge {
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+      padding: 0.15rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.4rem;
+      margin: 1.8rem 0;
+    }
+    .module-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 1.5rem;
+      transition: 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .module-card:hover {
+      border-color: #94a3b8;
+      box-shadow: 0 10px 20px -10px rgba(0,0,0,0.08);
+    }
+    .module-card h4 {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+    ul, ol {
+      margin-left: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+    li {
+      margin-bottom: 0.4rem;
+    }
+    hr {
+      margin: 2.3rem 0 1.5rem;
+      border: 0;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .footer-note {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #64748b;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.3rem 0;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+      padding: 0.7rem;
+      text-align: left;
+    }
+    td, th {
+      border: 1px solid #e2e8f0;
+      padding: 0.6rem 0.9rem;
+    }
+    @media (max-width: 800px) {
+      .container {
+        flex-direction: column;
+      }
+      nav.sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      main {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <nav class="sidebar">
+    <h2>📁 FileHub</h2>
+    <div class="nav-section">
+      <div class="nav-section-title">Общее</div>
+      <a href="#overview" class="nav-item">Обзор проекта</a>
+      <a href="#architecture" class="nav-item">Архитектура</a>
+      <a href="#quickstart" class="nav-item">Быстрый старт</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Модули</div>
+      <a href="#module-server" class="nav-item">server.py</a>
+      <a href="#module-auth" class="nav-item">auth.py</a>
+      <a href="#module-shares" class="nav-item">shares.py</a>
+      <a href="#module-networking" class="nav-item">networking.py</a>
+      <a href="#module-storage" class="nav-item">storage.py</a>
+      <a href="#module-security" class="nav-item">security.py</a>
+      <a href="#module-config" class="nav-item">config.py</a>
+      <a href="#module-logger" class="nav-item">logger.py</a>
+      <a href="#module-protocols" class="nav-item">protocols.py</a>
+      <a href="#module-utils" class="nav-item">utils.py</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Расширение</div>
+      <a href="#extending" class="nav-item">Добавление модулей</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Конфигурация</div>
+      <a href="#config-ref" class="nav-item">filehub.conf</a>
+    </div>
+  </nav>
+
+  <main>
+    <h1>Документация FileHub Server</h1>
+
+    <!-- ОБЗОР -->
+    <section id="overview">
+      <h2>📌 Обзор проекта</h2>
+      <p>
+        <strong>FileHub</strong> — это многопользовательский сервер для обмена файлами (раздачами) в реальном времени. 
+        Клиенты подключаются по TCP, аутентифицируются, создают «раздачи» (файлы или папки) и скачивают их друг у друга. 
+        Сервер выступает координатором, проксируя данные между отправителем и получателем через отдельный канал передачи данных.
+      </p>
+      <div class="card">
+        <p><strong>Ключевые возможности:</strong></p>
+        <ul>
+          <li>🔐 Аутентификация с паролем или автоматическая регистрация</li>
+          <li>📂 Раздачи файлов и папок с метаданными</li>
+          <li>🔄 Проксирование P2P-передачи через сервер</li>
+          <li>📋 Список всех активных раздач с владельцами</li>
+          <li>🧹 Автоматическая очистка неактивных раздач</li>
+          <li>📊 Статистика сервера и логирование</li>
+          <li>⚙️ Гибкая конфигурация через .conf файл</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- АРХИТЕКТУРА -->
+    <section id="architecture">
+      <h2>🏗️ Архитектура</h2>
+      <p>Сервер построен по модульному принципу. Каждый компонент отвечает за свою зону ответственности и взаимодействует через внедрение зависимостей.</p>
+      <div class="module-grid">
+        <div class="module-card"><h4>🧠 server.py</h4><p>Главный цикл, диспетчер команд, инициализация компонентов.</p></div>
+        <div class="module-card"><h4>🔑 auth.py</h4><p>Аутентификация, управление активными сессиями.</p></div>
+        <div class="module-card"><h4>📤 shares.py</h4><p>Создание, удаление, список раздач, обновление статуса.</p></div>
+        <div class="module-card"><h4>🌐 networking.py</h4><p>JSON-протокол, прокси трансферов, канал данных.</p></div>
+        <div class="module-card"><h4>💾 storage.py</h4><p>Загрузка/сохранение users.json и shares.json.</p></div>
+        <div class="module-card"><h4>🔒 security.py</h4><p>IP-фильтры, хеширование паролей, расширения.</p></div>
+        <div class="module-card"><h4>⚙️ config.py</h4><p>Парсинг filehub.conf, свойства конфигурации.</p></div>
+        <div class="module-card"><h4>📝 logger.py</h4><p>Логирование, ротация, статистика.</p></div>
+        <div class="module-card"><h4>📡 protocols.py</h4><p>Константы действий, статусов, типов.</p></div>
+        <div class="module-card"><h4>🛠️ utils.py</h4><p>Хелперы: форматирование, валидация, ID.</p></div>
+      </div>
+      <p>Все зависимости передаются в конструкторы, что упрощает тестирование и замену компонентов.</p>
+    </section>
+
+    <!-- БЫСТРЫЙ СТАРТ -->
+    <section id="quickstart">
+      <h2>🚀 Быстрый старт</h2>
+      <pre># Запуск сервера
+python server.py</pre>
+      <p>Сервер загрузит конфигурацию из <code>filehub.conf</code> (создаст автоматически при отсутствии). По умолчанию слушает порты <strong>5000</strong> (управление) и <strong>5001</strong> (данные).</p>
+      <p>Для подключения клиент отправляет JSON-сообщение с действием <code>login</code>.</p>
+    </section>
+
+    <!-- МОДУЛИ -->
+    <hr>
+    <h2>📦 Детальное описание модулей</h2>
+
+    <section id="module-server">
+      <h3><span class="file-badge">server.py</span> Главный модуль</h3>
+      <p>Класс <code>FileHubServer</code> управляет жизненным циклом: создаёт сокеты, принимает подключения, запускает фоновые потоки (очистка, сохранение, статистика). Метод <code>_handle_client</code> разбирает команды и вызывает соответствующие обработчики.</p>
+    </section>
+
+    <section id="module-auth">
+      <h3><span class="file-badge">auth.py</span> Аутентификация</h3>
+      <p><code>AuthManager</code> проверяет учетные данные, автоматически регистрирует новых пользователей (если <code>require_password=true</code>), ведёт словарь <code>active_users</code> с сокетами. Методы <code>add_active_user</code> / <code>remove_active_user</code> контролируют онлайн-статус.</p>
+    </section>
+
+    <section id="module-shares">
+      <h3><span class="file-badge">shares.py</span> Управление раздачами</h3>
+      <p><code>ShareManager</code> создаёт записи в <code>storage.shares</code>, проверяет лимиты, блокированные расширения, обновляет <code>last_seen</code> при пингах. Метод <code>get_all_shares</code> возвращает список с флагом <code>owner_online</code>.</p>
+    </section>
+
+    <section id="module-networking">
+      <h3><span class="file-badge">networking.py</span> Сетевое взаимодействие</h3>
+      <p><code>NetworkManager</code> отправляет/принимает JSON с префиксом длины (4 байта). Для передачи данных создаёт трансфер: ожидает подключения отправителя и получателя на <code>data_port</code>, затем проксирует байты.</p>
+    </section>
+
+    <section id="module-storage">
+      <h3><span class="file-badge">storage.py</span> Хранилище</h3>
+      <p>Загружает <code>users_data.json</code> и <code>shares_data.json</code>. При старте валидирует раздачи (удаляет просроченные). Сохранение вызывается периодически и при завершении.</p>
+    </section>
+
+    <section id="module-security">
+      <h3><span class="file-badge">security.py</span> Безопасность</h3>
+      <p>Фильтрация IP (allowed/blocked), проверка расширений, хеширование паролей через PBKDF2-SHA256 с солью.</p>
+    </section>
+
+    <section id="module-config">
+      <h3><span class="file-badge">config.py</span> Конфигурация</h3>
+      <p>Читает INI-подобный <code>filehub.conf</code>. Предоставляет свойства <code>server_config</code>, <code>security_config</code> и др.</p>
+    </section>
+
+    <section id="module-logger">
+      <h3><span class="file-badge">logger.py</span> Логирование</h3>
+      <p>Поддержка уровней, ротация по размеру, сбор статистики.</p>
+    </section>
+
+    <section id="module-protocols">
+      <h3><span class="file-badge">protocols.py</span> Протоколы</h3>
+      <p>Классы <code>MessageActions</code>, <code>TransferRoles</code>, <code>StatusCodes</code>, <code>ShareTypes</code> и дефолтный конфиг.</p>
+    </section>
+
+    <section id="module-utils">
+      <h3><span class="file-badge">utils.py</span> Утилиты</h3>
+      <p>Статические методы: <code>format_bytes</code>, <code>generate_unique_id</code>, <code>validate_username</code>.</p>
+    </section>
+
+    <!-- ДОБАВЛЕНИЕ НОВЫХ МОДУЛЕЙ -->
+    <hr>
+    <section id="extending">
+      <h2>🧩 Расширение: добавление новых модулей</h2>
+      <p>Архитектура FileHub позволяет легко интегрировать собственные модули. Ниже приведена пошаговая инструкция.</p>
+
+      <div class="card">
+        <h3>1. Создайте файл модуля</h3>
+        <p>Например, <code>announcements.py</code> для системных объявлений.</p>
+        <pre># announcements.py
+class AnnouncementManager:
+    def __init__(self, storage, logger):
+        self.storage = storage
+        self.logger = logger
+        self.messages = []
+
+    def add_announcement(self, text):
+        self.messages.append(text)
+        self.logger.log('INFO', f'Объявление: {text}')
+
+    def get_announcements(self):
+        return self.messages[-5:]  # последние 5</pre>
+      </div>
+
+      <div class="card">
+        <h3>2. Интегрируйте в FileHubServer</h3>
+        <p>В <code>server.py</code> импортируйте модуль и добавьте его в <code>__init__</code>.</p>
+        <pre>from announcements import AnnouncementManager
+...
+class FileHubServer:
+    def __init__(self, config_path='filehub.conf'):
+        ...
+        self.announcements = AnnouncementManager(self.storage, self.logger)</pre>
+      </div>
+
+      <div class="card">
+        <h3>3. Добавьте новое действие в протокол</h3>
+        <p>В <code>protocols.py</code> расширьте <code>MessageActions</code>:</p>
+        <pre>class MessageActions:
+    ...
+    ANNOUNCE = 'announce'      # новое действие
+    GET_ANNOUNCEMENTS = 'get_announcements'</pre>
+      </div>
+
+      <div class="card">
+        <h3>4. Обработайте команду в _handle_client</h3>
+        <p>В методе <code>_handle_client</code> добавьте ветку:</p>
+        <pre>elif action == MessageActions.ANNOUNCE:
+    text = request.get('text', '')
+    self.announcements.add_announcement(text)
+    self.network.send_json(client_socket, {'status': 'ok'})
+elif action == MessageActions.GET_ANNOUNCEMENTS:
+    msgs = self.announcements.get_announcements()
+    self.network.send_json(client_socket, {'status': 'ok', 'announcements': msgs})</pre>
+      </div>
+
+      <div class="card">
+        <h3>5. (Опционально) Добавьте конфигурацию</h3>
+        <p>В <code>filehub.conf</code> можно создать новую секцию <code>[announcements]</code> и читать её через <code>Config</code>.</p>
+      </div>
+
+      <p><strong>Принципы расширения:</strong></p>
+      <ul>
+        <li>✅ Новый класс получает только нужные зависимости (storage, logger, config).</li>
+        <li>✅ Действия добавляются в <code>MessageActions</code> без изменения ядра протокола.</li>
+        <li>✅ Обработчики в <code>_handle_client</code> следуют паттерну «действие → метод».</li>
+        <li>✅ Для сложной логики можно создать отдельный поток (как <code>_accept_data_connections</code>).</li>
+      </ul>
+    </section>
+
+    <!-- КОНФИГУРАЦИЯ -->
+    <hr>
+    <section id="config-ref">
+      <h2>⚙️ Структура filehub.conf</h2>
+      <table>
+        <tr><th>Секция</th><th>Параметр</th><th>Описание</th></tr>
+        <tr><td>server</td><td>host, port, data_port</td><td>Адреса и порты управления/данных</td></tr>
+        <tr><td>server</td><td>max_connections</td><td>Максимум одновременных подключений</td></tr>
+        <tr><td>shares</td><td>storage_file, users_file</td><td>Пути к JSON-хранилищам</td></tr>
+        <tr><td>shares</td><td>cleanup_interval_hours</td><td>Период очистки неактивных раздач</td></tr>
+        <tr><td>shares</td><td>inactive_days</td><td>Через сколько дней раздача удаляется</td></tr>
+        <tr><td>network</td><td>buffer_size</td><td>Размер буфера передачи (байт)</td></tr>
+        <tr><td>security</td><td>require_password</td><td>Требовать пароль (true/false)</td></tr>
+        <tr><td>security</td><td>allowed_ips, blocked_ips</td><td>Списки IP/подсетей</td></tr>
+        <tr><td>security</td><td>blocked_extensions</td><td>Запрещённые расширения (.exe,.bat)</td></tr>
+        <tr><td>logging</td><td>log_level</td><td>DEBUG, INFO, WARNING, ERROR</td></tr>
+      </table>
+    </section>
+
+    <div class="footer-note">
+      FileHub Server v2.1 · Документация сгенерирована на основе исходного кода · 
+      Для предложений по улучшению используйте систему контроля версий проекта.
+    </div>
+  </main>
+</div>
+</body>
+</html>
