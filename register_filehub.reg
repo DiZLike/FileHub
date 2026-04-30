@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\filehub]
+@="URL:FileHub Protocol"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\filehub\shell]
+
+[HKEY_CLASSES_ROOT\filehub\shell\open]
+
+[HKEY_CLASSES_ROOT\filehub\shell\open\command]
+@="C:\\Users\\Evgeny\\AppData\\Local\\Programs\\Python\\Python314\\python"
