@@ -1,6 +1,7 @@
 import threading
 import sys
 from core.config import ClientConfig
+from core.logger import ClientLogger
 from core.auth import AuthManager
 from network.connection import ConnectionManager
 from network.encryption import ClientEncryption
@@ -16,10 +17,11 @@ class FileHubClient:
         self.service_mode = service_mode
         
         self.config = ClientConfig(config_path)
+        self.logger = ClientLogger(self.config.logging)
         self.auth = AuthManager(self.config)
-        self.connection = ConnectionManager(self.config)
+        self.connection = ConnectionManager(self.config, self.logger)
         self.encryption = ClientEncryption()
-        
+
         self.connection.set_encryption(self.encryption)
         
         self.shares = ShareManager(self.connection, self.config)

@@ -4,11 +4,13 @@ import threading
 import time
 from network.protocol import MessageActions, MAX_JSON_SIZE, JSON_BUFFER_SIZE
 from ui.console import console
+from core.logger import ClientLogger
 
 class ConnectionManager:
     """Менеджер сетевых подключений"""
     
-    def __init__(self, config):
+    def __init__(self, config, logger):
+        self.logger: ClientLogger = logger
         conn_config = config.connection
         self.server_host = conn_config.server_host
         self.server_port = conn_config.server_port
@@ -63,6 +65,7 @@ class ConnectionManager:
             if not hello_response or hello_response.get('status') != 'ok':
                 error_msg = hello_response.get('message', 'Сервер не ответил на приветствие') if hello_response else 'Нет ответа'
                 console.print_system_message(f'Ошибка: {error_msg}', 'error')
+                self.logger.error(f'Ошибка: {error_msg}')
                 self._close_socket(self.control_socket)
                 self.control_socket = None
                 return False
@@ -78,12 +81,14 @@ class ConnectionManager:
                 ssl_socket = self._encryption.wrap_socket(self.control_socket)
                 if ssl_socket is None:
                     console.print_system_message('Ошибка установки TLS соединения', 'error')
+                    self.logger.error('Ошибка установки TLS соединения')
                     self._close_socket(self.control_socket)
                     self.control_socket = None
                     return False
                 
                 self.control_socket = ssl_socket
                 console.print_system_message(f'TLS соединение установлено ({encryption_params["algorithm"]})', 'info')
+                self.logger.info(f'TLS соединение установлено ({encryption_params["algorithm"]})')
             
             # Этап 3: Аутентификация
             login_data = {
@@ -100,12 +105,14 @@ class ConnectionManager:
             if not response or response.get('status') != 'ok':
                 error_msg = response.get('message', 'Неизвестная ошибка') if response else 'Нет ответа'
                 console.print_system_message(f'Ошибка: {error_msg}', 'error')
+                self.logger.error(f'Ошибка: {error_msg}')
                 self._close_socket(self.control_socket)
                 self.control_socket = None
                 return False
             
             self.require_password = response.get('require_password', False)
             console.print_system_message(f'{response["message"]}', 'success')
+            self.logger.info(f'{response["message"]}')
             
             self.connected = True
             
@@ -120,16 +127,19 @@ class ConnectionManager:
         
         except socket.timeout:
             console.print_system_message('Таймаут подключения к серверу', 'error')
+            self.logger.error('Таймаут подключения к серверу')
             self._close_socket(self.control_socket)
             self.control_socket = None
             return False
         except ConnectionRefusedError:
             console.print_system_message('Сервер недоступен (отказ в подключении)', 'error')
+            self.logger.error('Сервер недоступен (отказ в подключении)')
             self._close_socket(self.control_socket)
             self.control_socket = None
             return False
         except Exception as e:
             console.print_system_message(f'Ошибка подключения: {e}', 'error')
+            self.logger.error(f'Ошибка подключения: {e}')
             self._close_socket(self.control_socket)
             self.control_socket = None
             return False
@@ -156,6 +166,7 @@ class ConnectionManager:
         
         if was_connected:
             console.print_system_message('Отключено', 'info')
+            self.logger.log('INFO', 'Отключено')
         
         if self.on_disconnect:
             self.on_disconnect()
@@ -164,6 +175,7 @@ class ConnectionManager:
         """Отправка команды и получение ответа"""
         if not self.connected or not self.control_socket:
             console.print_system_message('Нет подключения к серверу', 'warning')
+            self.logger.warn('Нет подключения к серверу')
             return None
         
         try:
@@ -184,10 +196,12 @@ class ConnectionManager:
             self._response_event.clear()
             self._pending_response = None
             console.print_system_message(f'Таймаут ожидания ответа на команду {command_data.get("action")}', 'warning')
+            self.logger.log('WARNING', f'Таймаут ожидания ответа на команду {command_data.get("action")}')
             return None
             
         except Exception as e:
             console.print_system_message(f'Ошибка отправки команды: {e}', 'error')
+            self.logger.log('ERROR', f'Ошибка отправки команды: {e}')
             self._response_event.clear()
             self._pending_response = None
             return None
@@ -217,24 +231,27 @@ class ConnectionManager:
                 ssl_socket = self._encryption.wrap_socket(data_socket)
                 if ssl_socket is None:
                     console.print_system_message('Ошибка TLS для канала данных', 'error')
+                    self.logger.log('ERROR', 'Ошибка TLS для канала данных')
                     data_socket.close()
                     return None
                 data_socket = ssl_socket
                 console.print_system_message('TLS канал данных установлен', 'info')
+                self.logger.log('INFO', 'TLS канал данных установлен')
             
             header = transfer_id.encode('utf-8').ljust(32) + role
             data_socket.sendall(header)
             
-            #console.print_system_message('Подключено к каналу данных', 'info')
+            self.logger.log('INFO', 'Подключено к каналу данных')
             return data_socket
         
         except Exception as e:
-            console.print_system_message(f'Ошибка подключения к каналу данных: {e}', 'error')
+            self.logger.log('ERROR', f'Ошибка подключения к каналу данных: {e}')
             return None
     
     def _command_listener(self):
         """Фоновый поток для приёма входящих сообщений"""
         console.print_system_message(f'Прослушивание запущено для {self.username}', 'info')
+        self.logger.log('INFO', f'Прослушивание запущено для {self.username}')
         
         while self.connected and self.control_socket and not self._shutdown_event.is_set():
             try:
@@ -255,22 +272,19 @@ class ConnectionManager:
                     if self.on_upload_request:
                         self.on_upload_request(message)
                     else:
-                        console.print_system_message(
-                            f'[{self.username}] Получен запрос отправки, но обработчик не назначен',
-                            'warning'
-                        )
+                        self.logger.log('WARNING', f'[{self.username}] Получен запрос отправки, но обработчик не назначен')
             
             except (ConnectionResetError, ConnectionAbortedError, OSError) as e:
                 if self.connected:
-                    console.print_system_message(f'[{self.username}] Соединение разорвано: {e}', 'error')
+                    self.logger.log('ERROR', f'[{self.username}] Соединение разорвано: {e}')
                     self.connected = False
                 break
             except Exception as e:
                 if self.connected:
-                    console.print_system_message(f'[{self.username}] Ошибка прослушивания: {e}', 'error')
+                    self.logger.log('ERROR', f'[{self.username}] Ошибка прослушивания: {e}')
                 break
         
-        console.print_system_message(f'Прослушивание остановлено для {self.username}', 'info')
+        self.logger.log('INFO', f'Прослушивание остановлено для {self.username}')
     
     def _send_json(self, sock, data: dict):
         """Отправка JSON-сообщения"""
@@ -297,7 +311,7 @@ class ConnectionManager:
             
             msg_length = int.from_bytes(raw_len, 'big')
             if msg_length > MAX_JSON_SIZE:
-                console.print_system_message(f'Получено сообщение слишком большого размера: {msg_length}', 'warning')
+                self.logger.log('WARNING', f'Получено сообщение слишком большого размера: {msg_length}')
                 return None
             
             data = self._recv_exactly(sock, msg_length)

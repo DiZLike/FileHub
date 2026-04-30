@@ -26,6 +26,13 @@ show_progress = true
 confirm_downloads = false
 auto_reconnect = false
 
+[logging]
+enabled = true
+log_file = hub.log
+log_level = INFO
+log_transfers = true
+max_log_size_mb = 10
+
 [security]
 remember_password = false
 password_hash_file = client_pass.hash
@@ -169,6 +176,16 @@ class ClientConfig:
             password_hash_file=self.get('security', 'password_hash_file', 'client_pass.hash')
         )
     
+    @property
+    def logging(self) -> dict:
+        return {
+            'enabled': self.get_bool('logging', 'enabled', True),
+            'log_file': self.get('logging', 'log_file', 'hub.log'),
+            'log_level': self.get('logging', 'log_level', 'INFO').upper(),
+            'log_transfers': self.get_bool('logging', 'log_transfers', True),
+            'max_log_size_mb': self.get_int('logging', 'max_log_size_mb', 10)
+        }
+
     @property
     def service(self) -> ServiceConfig:
         return ServiceConfig(
