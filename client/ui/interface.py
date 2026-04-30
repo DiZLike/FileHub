@@ -50,6 +50,8 @@ class UserInterface:
         if self.client.auth.remember_password and password:
             self.client.auth.save_password(username, password)
             console.print_system_message('Пароль сохранен', 'info')
+
+        console.print_system_message('Тут проверяем передана ли шара')
         
         notification_thread = threading.Thread(target=self._notification_worker, daemon=True)
         notification_thread.start()
